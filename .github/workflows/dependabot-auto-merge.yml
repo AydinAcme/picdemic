@@ -1,7 +1,5 @@
 name: Dependabot auto-merge
 
-# Merges the weekly grouped Dependabot PRs. Groups only hold minor/patch
-# updates; majors come as their own PRs and are left for review.
 on: pull_request
 
 jobs:
@@ -13,11 +11,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      # Grouped PR branches look like dependabot/npm_and_yarn/npm-b0b59e2086.
-      - run: |
-          [[ "$BRANCH" =~ ^dependabot/[a-z_]+/[a-z-]+-[0-9a-f]{10}$ ]] || exit 0
-          gh pr merge --squash "$PR_URL"
+      - id: meta
+        uses: dependabot/fetch-metadata@v3
+
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --squash "$PR_URL"
         env:
-          BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
